@@ -1,15 +1,16 @@
 const UserServices = require('./../service/user_service');
 var bcrypt = require('bcryptjs');
+let UserModel = require('../models/user.js');
 
 exports.register = async (req, res, next) => {
     try {
         console.log("---req body---", req.body);
-        const { name, email, password, telephone} = req.body;
+        const { name, email, password, phone} = req.body;
         const duplicate = await UserServices.getUserByEmail(email);
         if (duplicate) {
             throw new Error(`UserName ${email}, Already Registered`)
         }
-        const response = await UserServices.registerUser(name, email, password, telephone);
+        const response = await UserServices.registerUser(name, email, password, phone);
 
         res.json({ status: true, success: 'User registered successfully' });
 
@@ -47,7 +48,19 @@ exports.login = async (req, res, next) => {
 
         const token = await UserServices.generateAccessToken(tokenData,"secret","1h")
 
-        res.status(200).json({ status: true, success: "sendData", token: token, _id: User._id });
+        res.status(200).json({ status: true, success: User, token: token, _id: User._id });
+    } catch (error) {
+        console.log(error, 'err---->');
+        next(error);
+    }
+}
+
+exports.update = async (req, res, next) => {
+    try {
+        UserModel.updateOne({ _id: req.query.id }, req.body)
+        .then(() => {
+            res.status(200).json({ status: true });
+        });
     } catch (error) {
         console.log(error, 'err---->');
         next(error);
